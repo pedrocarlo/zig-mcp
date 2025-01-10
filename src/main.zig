@@ -1,4 +1,7 @@
 const std = @import("std");
+comptime {
+    _ = @import("./mcp/main.zig");
+}
 
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
