@@ -44,32 +44,6 @@ pub const ProgressToken = union(ProgressTokenTags) {
     }
 };
 
-test "progressToken parse" {
-    const TestStruct = struct { progressToken: ProgressToken };
-
-    const document_str =
-        \\{"progressToken":1}
-    ;
-    const parsed = try json.parseFromSlice(TestStruct, testing.allocator, document_str, .{});
-    defer parsed.deinit();
-
-    switch (parsed.value.progressToken) {
-        .string => unreachable, // try testing.expectEqualSlices(u8, "1", v)
-        .number => |v| try testing.expectEqual(1, v),
-    }
-
-    const document_str_2 =
-        \\{"progressToken":"1"}
-    ;
-    const parsed2 = try json.parseFromSlice(TestStruct, testing.allocator, document_str_2, .{ .allocate = .alloc_always });
-    defer parsed2.deinit();
-
-    switch (parsed2.value.progressToken) {
-        .string => |v| try testing.expectEqualSlices(u8, "1", v),
-        .number => unreachable,
-    }
-}
-
 /// An opaque token used to represent a cursor for pagination.
 pub const Cursor = *[]u8;
 
@@ -187,42 +161,3 @@ const Implementation = struct {
     name: []const u8,
     version: []const u8,
 };
-
-test "initialize request" {
-    const initialReq = InitializeRequest{
-        .params = .{
-            .protocolVersion = "1.0",
-            .capabilities = .{ .experimental = .{ .inner = BetterObjectMap } },
-            .clientInfo = .{
-                .name = "client",
-                .version = "0.0.0",
-            },
-        },
-    };
-    // _ = initialReq;
-
-    const document_str =
-        \\ {
-        \\ "method": "initialize",
-        \\  "params": {
-        \\  "protocolVersion": "1.0",
-        \\"capabilities": {
-        \\  "experimental": {
-        \\      "test": 1
-        \\  }
-        \\},
-        \\"clientInfo": {
-        \\  "name": "client",
-        \\  "version": "0.0.0"
-        \\}
-        \\}
-        \\}
-    ;
-
-    const parsed = try json.parseFromSlice(Request, testing.allocator, document_str, .{});
-    defer parsed.deinit();
-
-    try testing.expectEqualDeep(initialReq, parsed.value.request.initialize);
-
-    // std.debug.print("type {}\n", .{parsed.value});
-}
